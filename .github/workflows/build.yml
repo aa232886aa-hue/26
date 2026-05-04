@@ -18,17 +18,30 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Fix Project Structure
+      run: |
+        # יצירת קובץ ה-build.gradle הראשי בתיקיית השורש
+        echo "buildscript { repositories { google(); mavenCentral() }; dependencies { classpath 'com.android.tools.build:gradle:7.4.2' } }
+        allprojects { repositories { google(); mavenCentral() } }" > build.gradle
+        
+        # יצירת קובץ settings.gradle בתיקיית השורש
+        echo "include ':app'" > settings.gradle
+        
+        # מציאת התיקייה שבה נמצא ה-HTML שלך והעברתה למקום הנכון
+        mkdir -p app/src/main/assets
+        find . -name "index.html" -exec cp {} app/src/main/assets/ \;
+        
+        # יצירת ה-AndroidManifest במיקום הנכון
+        mkdir -p app/src/main
+        echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://android.com" package="com.example.myapp"><uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.RECORD_AUDIO"/><uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/><application android:label="App" android:theme="@style/Theme.AppCompat.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
       with:
         gradle-version: 7.4.2
 
     - name: Build with Gradle
-      # הפקודה הזו מוצאת את קובץ ה-settings ובונה משם אוטומטית
-      run: |
-        SETTINGS_PATH=$(find . -name "settings.gradle" -print -quit)
-        SETTINGS_DIR=$(dirname "$SETTINGS_PATH")
-        gradle assembleDebug -p "$SETTINGS_DIR"
+      run: gradle assembleDebug
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
