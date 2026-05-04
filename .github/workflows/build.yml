@@ -24,12 +24,14 @@ jobs:
         gradle-version: 7.4.2
 
     - name: Build with Gradle
-      # הפקודה הזו אומרת לגרדל לעבוד מתוך תיקיית 26
-      run: gradle assembleDebug -p 26
+      # הפקודה הזו מוצאת את קובץ ה-settings ובונה משם אוטומטית
+      run: |
+        SETTINGS_PATH=$(find . -name "settings.gradle" -print -quit)
+        SETTINGS_DIR=$(dirname "$SETTINGS_PATH")
+        gradle assembleDebug -p "$SETTINGS_DIR"
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: my-app-debug-apk
-        # הכוכביות עוזרות לגיטהב למצוא את הקובץ גם אם הוא עמוק בתיקיות
         path: "**/app/build/outputs/apk/debug/app-debug.apk"
